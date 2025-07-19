@@ -33,32 +33,23 @@ function install_and_run() {
     echo -e "2. 🆕 Setup as new node${RESET}"
     read -p "Select option (1 or 2): " NODE_CHOICE
 
-    if [[ "$NODE_CHOICE" == "1" ]]; then
-        echo -e "${CYAN}→ Importing key mode selected${RESET}"
-        git clone https://github.com/GoldVPS/cysic-verifier.git
-        cd cysic-verifier || exit
-        chmod +x setup.sh
-        ./setup.sh build
+    read -p "📝 Please input your reward address (0x...): " REWARD_ADDRESS
 
+    echo -e "${YELLOW}🚀 Downloading and installing verifier for address: $REWARD_ADDRESS${RESET}"
+    curl -L https://github.com/cysic-labs/cysic-phase3/releases/download/v1.0.0/setup_linux.sh > ~/setup_linux.sh
+    bash ~/setup_linux.sh "$REWARD_ADDRESS"
+
+    if [[ "$NODE_CHOICE" == "1" ]]; then
         mkdir -p /root/.cysic/keys
         echo -e "${YELLOW}📥 Please upload your .key file to: /root/.cysic/keys/"
-        echo -e "Example filename: 0x123abc.key"
+        echo -e "🔐 File name must match your address: $REWARD_ADDRESS.key"
         read -p "🔃 Press ENTER once the key file is uploaded to start the node..."
-
-        ./setup.sh run
-
-    elif [[ "$NODE_CHOICE" == "2" ]]; then
-        echo -e "${CYAN}→ Setting up new node...${RESET}"
-        git clone https://github.com/GoldVPS/cysic-verifier.git
-        cd cysic-verifier || exit
-        chmod +x setup.sh
-        ./setup.sh build
-        ./setup.sh run
-        echo -e "${GREEN}🎉 Setup complete. Please backup the .key file generated in /root/.cysic/keys/${RESET}"
-    else
-        echo -e "${RED}❌ Invalid choice.${RESET}"
-        sleep 2
     fi
+
+    echo -e "${GREEN}🎯 Starting Cysic node in background using screen 'cysic'...${RESET}"
+    screen -S cysic -dm bash -c "cd ~/cysic-verifier/ && bash start.sh"
+    echo -e "${GREEN}✅ Node is now running. Use 'screen -r cysic' to view logs.${RESET}"
+    sleep 2
 }
 
 # === Check Logs ===
@@ -75,13 +66,13 @@ function check_logs() {
 
 # === Uninstall Script ===
 function uninstall_all() {
-    echo -e "${RED}⚠️ This will delete all Cysic verifier files and this installer. Proceed? (y/n)${RESET}"
+    echo -e "${RED}⚠️  This will delete all Cysic verifier files and this installer. Proceed? (y/n)${RESET}"
     read -p "→ Confirm [y/n]: " CONFIRM
 
     if [[ "$CONFIRM" == "y" || "$CONFIRM" == "Y" ]]; then
         echo -e "${YELLOW}Stopping and removing Cysic files...${RESET}"
         screen -S cysic -X quit 2>/dev/null
-        rm -rf ~/cysic-verifier ~/setup_linux.sh ~/verifier-auto.sh
+        rm -rf ~/cysic-verifier ~/setup_linux.sh ~/verifier-auto.sh /root/.cysic
         echo -e "${GREEN}✅ Uninstallation complete.${RESET}"
         exit 0
     else
