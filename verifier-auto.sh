@@ -61,23 +61,42 @@ function check_logs() {
     fi
 }
 
+# === Uninstall Script ===
+function uninstall_all() {
+    echo -e "${RED}⚠️ This will delete all Cysic verifier files and this installer. Proceed? (y/n)${RESET}"
+    read -p "→ Confirm [y/n]: " CONFIRM
+
+    if [[ "$CONFIRM" == "y" || "$CONFIRM" == "Y" ]]; then
+        echo -e "${YELLOW}Stopping and removing Cysic files...${RESET}"
+        screen -S cysic -X quit 2>/dev/null
+        rm -rf ~/cysic-verifier ~/setup_linux.sh ~/verifier-auto.sh
+        echo -e "${GREEN}✅ Uninstallation complete.${RESET}"
+        exit 0
+    else
+        echo -e "${CYAN}Uninstall cancelled.${RESET}"
+        sleep 1
+    fi
+}
+
 # === Main Menu ===
 function main_menu() {
     while true; do
         show_header
         echo -e "${BLUE_LINE}"
-        echo -e "${YELLOW}Please choose an option:${RESET}"
+        echo -e "${YELLOW}Select an option (1–4):${RESET}"
         echo -e "${BLUE_LINE}"
         echo -e "1. 🚀 Setup and Run Verifier"
         echo -e "2. 📄 View Logs"
         echo -e "3. ❌ Exit"
+        echo -e "4. 🧹 Uninstall All"
         echo -e "${BLUE_LINE}"
-        read -p "Your choice: " OPTION
+        read -p "Select an option (1–4): " OPTION
 
         case $OPTION in
             1) install_and_run ;;
             2) check_logs ;;
             3) echo -e "${GREEN}Goodbye!${RESET}"; exit 0 ;;
+            4) uninstall_all ;;
             *) echo -e "${RED}Invalid option. Please try again.${RESET}"; sleep 1 ;;
         esac
     done
