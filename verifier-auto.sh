@@ -26,27 +26,39 @@ function show_header() {
 
 # === Install and Run Node ===
 function install_and_run() {
-    echo -e "${CYAN}Enter your reward address (e.g., 0xabc123...)${RESET}"
-    read -p "→ Reward Address: " REWARD_ADDRESS
+    clear
+    show_header
 
-    if [[ -z "$REWARD_ADDRESS" ]]; then
-        echo -e "${RED}Reward address cannot be empty.${RESET}"
+    echo -e "${CYAN}1. 🔑 Import existing key file"
+    echo -e "2. 🆕 Setup as new node${RESET}"
+    read -p "Select option (1 or 2): " NODE_CHOICE
+
+    if [[ "$NODE_CHOICE" == "1" ]]; then
+        echo -e "${CYAN}→ Importing key mode selected${RESET}"
+        git clone https://github.com/GoldVPS/cysic-verifier.git
+        cd cysic-verifier || exit
+        chmod +x setup.sh
+        ./setup.sh build
+
+        mkdir -p /root/.cysic/keys
+        echo -e "${YELLOW}📥 Please upload your .key file to: /root/.cysic/keys/"
+        echo -e "Example filename: 0x123abc.key"
+        read -p "🔃 Press ENTER once the key file is uploaded to start the node..."
+
+        ./setup.sh run
+
+    elif [[ "$NODE_CHOICE" == "2" ]]; then
+        echo -e "${CYAN}→ Setting up new node...${RESET}"
+        git clone https://github.com/GoldVPS/cysic-verifier.git
+        cd cysic-verifier || exit
+        chmod +x setup.sh
+        ./setup.sh build
+        ./setup.sh run
+        echo -e "${GREEN}🎉 Setup complete. Please backup the .key file generated in /root/.cysic/keys/${RESET}"
+    else
+        echo -e "${RED}❌ Invalid choice.${RESET}"
         sleep 2
-        return
     fi
-
-    echo -e "${YELLOW}Downloading and executing setup...${RESET}"
-    sleep 1
-
-    # Run in screen
-    screen -S cysic -dm bash -c "
-        curl -L https://github.com/cysic-labs/cysic-phase3/releases/download/v1.0.0/setup_linux.sh > ~/setup_linux.sh && \
-        bash ~/setup_linux.sh $REWARD_ADDRESS && \
-        cd ~/cysic-verifier && bash start.sh
-    "
-
-    echo -e "${GREEN}✅ Setup is running inside a screen session named 'cysic'.${RESET}"
-    sleep 2
 }
 
 # === Check Logs ===
